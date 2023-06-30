@@ -1,0 +1,4 @@
+servers:
+  hosts:
+    vps0:
+      ansible_host:

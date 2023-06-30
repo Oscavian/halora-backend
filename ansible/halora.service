@@ -1,0 +1,17 @@
+[Unit]
+Description=HaLoRa Backend
+
+[Service]
+# AmbientCapabilities=CAP_NET_BIND_SERVICE
+WorkingDirectory=/home/halora
+ExecStart=java -jar /home/halora/backend.jar
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=halora-backend
+User=halora
+# Environment=
+# Environment=
+
+[Install]
+WantedBy=multi-user.target

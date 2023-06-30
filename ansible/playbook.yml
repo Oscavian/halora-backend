@@ -1,0 +1,56 @@
+- name: SETUP
+  hosts: all
+  become: true
+  become_method: sudo
+  become_user: root
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        pkg:
+          - openjdk-17-jre
+        state: present
+
+    - name: Create halora user
+      ansible.builtin.user:
+        name: halora
+        shell: /bin/nologin
+        home: /home/halora
+        state: present
+
+    - name: Create halora unit file
+      ansible.builtin.copy:
+        src: halora.service
+        dest: /etc/systemd/system/halora.service
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: Enable service
+      ansible.builtin.systemd:
+        name: halora.service
+        enabled: true
+        daemon_reload: true
+
+- name: BUILD LOCALLY
+  hosts: all
+  tasks:
+    - name: Build
+      ansible.builtin.shell: cd ..; mvn assembly:single -f pom.xml
+      changed_when: false
+
+- name: DEPLOY
+  hosts: all
+  tasks:
+    - name: Copy app
+      ansible.builtin.copy:
+        src: ../target/halora-backend-1.0-SNAPSHOT-jar-with-dependencies.jar
+        dest: /home/halora/backend.jar
+        mode: '0755'
+        owner: halora
+
+    - name: Restart halora service
+      ansible.builtin.systemd:
+        name: halora.service
+        state: restarted
+        daemon_reload: true
